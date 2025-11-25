@@ -17,7 +17,10 @@ export default function Home() {
     async function loadData() {
       try {
         setLoading(true);
-        const csvContent = await loadCSV('/progi_licea_krakow_2025_2026.csv');
+        // Użyj ścieżki względnej, która będzie działać zarówno lokalnie jak i na GitHub Pages
+        const basePath = process.env.NODE_ENV === 'production' ? '' : '';
+        const csvPath = `${basePath}/progi_licea_krakow_2025_2026.csv`;
+        const csvContent = await loadCSV(csvPath);
         const { schools: parsedSchools, profiles: parsedProfiles } = await parseCSV(csvContent);
         setSchools(parsedSchools);
         setProfiles(parsedProfiles);
