@@ -84,3 +84,5 @@ export function calculateTotalPoints(input: CalculatorInput): number {
   return gradePoints + examPoints + additionalPoints;
 }
 
+
+

@@ -18,7 +18,7 @@ Nowoczesna aplikacja webowa do obliczania punktów rekrutacyjnych i sprawdzania 
 - Node.js 18+ 
 - npm lub yarn
 
-## 🛠️ Instalacja
+## 🛠️ Instalacja lokalna
 
 1. Zainstaluj zależności:
 ```bash
@@ -31,6 +31,26 @@ npm run dev
 ```
 
 3. Otwórz [http://localhost:3000](http://localhost:3000) w przeglądarce
+
+## 🚀 Wdrożenie (Darmowe)
+
+### Vercel (REKOMENDOWANE - 2 minuty)
+
+1. Przejdź na https://vercel.com
+2. Zaloguj się przez GitHub
+3. Kliknij **Add New Project**
+4. Wybierz swoje repozytorium
+5. Kliknij **Deploy** - gotowe! 🎉
+
+**Szczegółowe instrukcje:** [DEPLOY_VERCEL.md](./DEPLOY_VERCEL.md)
+
+### Alternatywy
+
+- **Netlify**: https://netlify.com (podobnie łatwe)
+- **Cloudflare Pages**: https://pages.cloudflare.com (najszybsze CDN)
+- **GitHub Pages**: Zobacz [DEPLOY.md](./DEPLOY.md)
+
+**Porównanie platform:** [DEPLOY_COMPARISON.md](./DEPLOY_COMPARISON.md)
 
 ## 📦 Struktura projektu
 
@@ -80,4 +100,6 @@ npm run dev
 ## 📝 Licencja
 
 Dane pochodzą z portalu [otouczelnie.pl](https://www.otouczelnie.pl)
+
+
 

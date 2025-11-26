@@ -1,17 +1,11 @@
 /** @type {import('next').NextConfig} */
-const isProd = process.env.NODE_ENV === 'production'
-const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'doliceum'
-const basePath = isProd ? `/${repoName}` : ''
-const assetPrefix = isProd ? `/${repoName}` : ''
-
 const nextConfig = {
   reactStrictMode: true,
-  output: 'export',
+  // Dla Vercel nie potrzebujemy basePath ani output: 'export'
+  // Vercel automatycznie obsługuje Next.js bez konfiguracji
   images: {
-    unoptimized: true,
+    unoptimized: true, // Dla statycznych eksportów (GitHub Pages)
   },
-  basePath: basePath,
-  assetPrefix: assetPrefix,
 }
 
 module.exports = nextConfig

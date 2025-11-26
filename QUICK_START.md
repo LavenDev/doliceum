@@ -41,3 +41,5 @@ const repoName = 'TWOJA_NAZWA_REPO'
 
 Lub ustaw zmienną `GITHUB_REPOSITORY` w GitHub Actions (już skonfigurowane).
 
+
+

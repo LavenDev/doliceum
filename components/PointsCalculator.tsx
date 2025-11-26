@@ -212,3 +212,5 @@ export default function PointsCalculator({ onPointsChange }: PointsCalculatorPro
   );
 }
 
+
+

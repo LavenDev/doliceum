@@ -89,7 +89,7 @@ export async function parseCSV(csvContent: string): Promise<{
 
         resolve({ schools, profiles });
       },
-      error: (error) => {
+      error: (error: Error) => {
         reject(error);
       },
     });
@@ -106,4 +106,6 @@ export async function loadCSV(filePath: string): Promise<string> {
   }
   return response.text();
 }
+
+
 
