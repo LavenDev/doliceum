@@ -130,3 +130,4 @@
 - **Chcesz najprostsze wdrożenie?** → Vercel lub Netlify
 - **Już używasz GitHub Actions?** → GitHub Pages (już skonfigurowane)
 
+

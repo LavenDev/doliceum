@@ -1,14 +1,16 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { SchoolData, ParsedProfile } from '@/utils/csvParser';
-import { CheckCircle2, XCircle, DoorOpen, Filter } from 'lucide-react';
-import { useState } from 'react';
+import { CheckCircle2, XCircle, DoorOpen, Filter, X } from 'lucide-react';
+import { ReadonlyURLSearchParams } from 'next/navigation';
 
 interface SchoolResultsProps {
   schools: SchoolData[];
   profiles: ParsedProfile[];
   userPoints: number;
+  searchParams: ReadonlyURLSearchParams;
+  onUpdateURL: (params: { profile?: string; schools?: string[]; points?: number }) => void;
 }
 
 interface SchoolGroup {
@@ -18,8 +20,55 @@ interface SchoolGroup {
   maxThreshold: number;
 }
 
-export default function SchoolResults({ schools, profiles, userPoints }: SchoolResultsProps) {
-  const [selectedProfile, setSelectedProfile] = useState<string>('all');
+export default function SchoolResults({ schools, profiles, userPoints, searchParams, onUpdateURL }: SchoolResultsProps) {
+  // Inicjalizuj z URL lub wartościami domyślnymi
+  const getInitialProfile = () => {
+    const profile = searchParams.get('profile');
+    return profile ? decodeURIComponent(profile) : 'all';
+  };
+
+  const getInitialSchools = () => {
+    const schoolsParam = searchParams.get('schools');
+    if (schoolsParam) {
+      const decodedSchools = schoolsParam
+        .split(',')
+        .map(school => decodeURIComponent(school))
+        .filter(Boolean);
+      return new Set(decodedSchools);
+    }
+    return new Set<string>();
+  };
+
+  const [selectedProfile, setSelectedProfile] = useState<string>(getInitialProfile());
+  const [selectedSchools, setSelectedSchools] = useState<Set<string>>(getInitialSchools());
+
+  // Synchronizuj z URL przy zmianie searchParams (np. przy ładowaniu strony z URL)
+  useEffect(() => {
+    const profile = searchParams.get('profile');
+    const decodedProfile = profile ? decodeURIComponent(profile) : 'all';
+    
+    const schoolsParam = searchParams.get('schools');
+    const schoolsSet = schoolsParam
+      ? new Set(
+          schoolsParam
+            .split(',')
+            .map(school => decodeURIComponent(school))
+            .filter(Boolean)
+        )
+      : new Set<string>();
+    
+    setSelectedProfile(decodedProfile);
+    setSelectedSchools(schoolsSet);
+  }, [searchParams]);
+
+  // Pobierz listę wszystkich unikalnych szkół
+  const allSchools = useMemo(() => {
+    const uniqueSchools = new Set<string>();
+    schools.forEach((schoolData) => {
+      uniqueSchools.add(schoolData.school);
+    });
+    return Array.from(uniqueSchools).sort();
+  }, [schools]);
 
   // Grupuj szkoły i klasy
   const schoolGroups = useMemo(() => {
@@ -28,6 +77,11 @@ export default function SchoolResults({ schools, profiles, userPoints }: SchoolR
     schools.forEach((schoolData) => {
       // Filtruj po profilu jeśli wybrano
       if (selectedProfile !== 'all' && schoolData.profile !== selectedProfile) {
+        return;
+      }
+
+      // Filtruj po wybranych szkołach (jeśli są wybrane)
+      if (selectedSchools.size > 0 && !selectedSchools.has(schoolData.school)) {
         return;
       }
 
@@ -47,7 +101,7 @@ export default function SchoolResults({ schools, profiles, userPoints }: SchoolR
     });
 
     return Array.from(groups.values());
-  }, [schools, selectedProfile]);
+  }, [schools, selectedProfile, selectedSchools]);
 
   // Sortuj szkoły: najpierw te, do których użytkownik się dostaje (najmniejsza różnica), potem te z najmniejszą różnicą
   const sortedSchools = useMemo(() => {
@@ -105,24 +159,101 @@ export default function SchoolResults({ schools, profiles, userPoints }: SchoolR
         </div>
       </div>
 
-      {/* Filtr profili */}
-      <div className="bg-white rounded-xl shadow-lg p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <label className="text-sm font-semibold text-gray-700">Filtruj po profilu</label>
+      {/* Filtry */}
+      <div className="bg-white rounded-xl shadow-lg p-4 space-y-4">
+        {/* Filtr profili */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Filter className="w-5 h-5 text-gray-600" />
+            <label className="text-sm font-semibold text-gray-700">Filtruj po profilu</label>
+          </div>
+          <select
+            value={selectedProfile}
+            onChange={(e) => {
+              const newProfile = e.target.value;
+              setSelectedProfile(newProfile);
+              onUpdateURL({ profile: newProfile });
+            }}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          >
+            <option value="all">Wszystkie profile</option>
+            {profiles.map((profile) => (
+              <option key={profile.name} value={profile.name}>
+                {profile.original}
+              </option>
+            ))}
+          </select>
         </div>
-        <select
-          value={selectedProfile}
-          onChange={(e) => setSelectedProfile(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        >
-          <option value="all">Wszystkie profile</option>
-          {profiles.map((profile) => (
-            <option key={profile.name} value={profile.name}>
-              {profile.original}
-            </option>
-          ))}
-        </select>
+
+        {/* Filtr szkół */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <DoorOpen className="w-5 h-5 text-gray-600" />
+            <label className="text-sm font-semibold text-gray-700">Wybierz licea</label>
+          </div>
+          
+          {/* Wybrane szkoły jako tagi */}
+          {selectedSchools.size > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {Array.from(selectedSchools).map((school) => (
+                <span
+                  key={school}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm font-medium"
+                >
+                  {school}
+                  <button
+                    onClick={() => {
+                      const newSelected = new Set(selectedSchools);
+                      newSelected.delete(school);
+                      setSelectedSchools(newSelected);
+                      onUpdateURL({ schools: Array.from(newSelected) });
+                    }}
+                    className="ml-1 hover:bg-primary-200 rounded-full p-0.5 transition-colors"
+                    aria-label={`Usuń ${school}`}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Dropdown do wyboru szkół */}
+          <select
+            value=""
+            onChange={(e) => {
+              const school = e.target.value;
+              if (school && !selectedSchools.has(school)) {
+                const newSelected = new Set([...selectedSchools, school]);
+                setSelectedSchools(newSelected);
+                onUpdateURL({ schools: Array.from(newSelected) });
+              }
+              e.target.value = '';
+            }}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          >
+            <option value="">Wybierz liceum...</option>
+            {allSchools
+              .filter((school) => !selectedSchools.has(school))
+              .map((school) => (
+                <option key={school} value={school}>
+                  {school}
+                </option>
+              ))}
+          </select>
+          
+          {selectedSchools.size > 0 && (
+            <button
+              onClick={() => {
+                setSelectedSchools(new Set());
+                onUpdateURL({ schools: [] });
+              }}
+              className="mt-2 text-sm text-gray-600 hover:text-gray-800 underline"
+            >
+              Wyczyść wybór (pokaż wszystkie)
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Lista szkół */}
@@ -234,6 +365,7 @@ function SchoolCard({
     </div>
   );
 }
+
 
 
 

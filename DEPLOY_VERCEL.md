@@ -98,3 +98,4 @@ Vercel automatycznie wdroży nową wersję!
 - Wolniejsze niż Vercel/Netlify
 - Instrukcje w `DEPLOY.md`
 
+

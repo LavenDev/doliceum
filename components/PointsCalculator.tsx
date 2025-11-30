@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   calculateTotalPoints,
   calculateGradePoints,
@@ -12,28 +12,39 @@ import {
 import { Calculator, BookOpen, Award, Plus } from 'lucide-react';
 
 interface PointsCalculatorProps {
+  initialInput?: CalculatorInput | null;
+  onInputChange?: (input: CalculatorInput) => void;
   onPointsChange: (points: number) => void;
 }
 
-export default function PointsCalculator({ onPointsChange }: PointsCalculatorProps) {
-  const [input, setInput] = useState<CalculatorInput>({
-    grades: {
-      polish: 'Bardzo dobry',
-      math: 'Bardzo dobry',
-      foreignLanguage: 'Bardzo dobry',
-      additionalSubject: 'Bardzo dobry',
-    },
-    examResults: {
-      polish: 80,
-      math: 80,
-      foreignLanguage: 80,
-    },
-    additionalPoints: {
-      redRibbon: false,
-      volunteer: false,
-      achievements: 0,
-    },
-  });
+const defaultInput: CalculatorInput = {
+  grades: {
+    polish: 'Bardzo dobry',
+    math: 'Bardzo dobry',
+    foreignLanguage: 'Bardzo dobry',
+    additionalSubject: 'Bardzo dobry',
+  },
+  examResults: {
+    polish: 80,
+    math: 80,
+    foreignLanguage: 80,
+  },
+  additionalPoints: {
+    redRibbon: false,
+    volunteer: false,
+    achievements: 0,
+  },
+};
+
+export default function PointsCalculator({ initialInput, onInputChange, onPointsChange }: PointsCalculatorProps) {
+  const [input, setInput] = useState<CalculatorInput>(initialInput || defaultInput);
+
+  // Zaktualizuj input gdy initialInput się zmieni (np. z URL)
+  useEffect(() => {
+    if (initialInput) {
+      setInput(initialInput);
+    }
+  }, [initialInput]);
 
   const totalPoints = useMemo(() => {
     const points = calculateTotalPoints(input);
@@ -48,28 +59,38 @@ export default function PointsCalculator({ onPointsChange }: PointsCalculatorPro
     [input.additionalPoints]
   );
 
+  const updateInput = (newInput: CalculatorInput) => {
+    setInput(newInput);
+    if (onInputChange) {
+      onInputChange(newInput);
+    }
+  };
+
   const updateGrade = (subject: keyof CalculatorInput['grades'], grade: Grade) => {
-    setInput((prev) => ({
-      ...prev,
-      grades: { ...prev.grades, [subject]: grade },
-    }));
+    const newInput = {
+      ...input,
+      grades: { ...input.grades, [subject]: grade },
+    };
+    updateInput(newInput);
   };
 
   const updateExamResult = (subject: keyof CalculatorInput['examResults'], value: number) => {
-    setInput((prev) => ({
-      ...prev,
-      examResults: { ...prev.examResults, [subject]: Math.max(0, Math.min(100, value)) },
-    }));
+    const newInput = {
+      ...input,
+      examResults: { ...input.examResults, [subject]: Math.max(0, Math.min(100, value)) },
+    };
+    updateInput(newInput);
   };
 
   const updateAdditionalPoints = (
     field: keyof CalculatorInput['additionalPoints'],
     value: boolean | number
   ) => {
-    setInput((prev) => ({
-      ...prev,
-      additionalPoints: { ...prev.additionalPoints, [field]: value },
-    }));
+    const newInput = {
+      ...input,
+      additionalPoints: { ...input.additionalPoints, [field]: value },
+    };
+    updateInput(newInput);
   };
 
   const GRADE_OPTIONS: Grade[] = ['Celujący', 'Bardzo dobry', 'Dobry', 'Dostateczny', 'Dopuszczający'];
@@ -211,6 +232,7 @@ export default function PointsCalculator({ onPointsChange }: PointsCalculatorPro
     </div>
   );
 }
+
 
 
 
