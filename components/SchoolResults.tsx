@@ -224,7 +224,8 @@ export default function SchoolResults({ schools, profiles, userPoints, searchPar
             onChange={(e) => {
               const school = e.target.value;
               if (school && !selectedSchools.has(school)) {
-                const newSelected = new Set([...selectedSchools, school]);
+                const newSelected = new Set(selectedSchools);
+                newSelected.add(school);
                 setSelectedSchools(newSelected);
                 onUpdateURL({ schools: Array.from(newSelected) });
               }
