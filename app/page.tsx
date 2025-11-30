@@ -1,14 +1,37 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import PointsCalculator from '@/components/PointsCalculator';
 import SchoolResults from '@/components/SchoolResults';
+import SearchParamsProvider from '@/components/SearchParamsProvider';
 import { parseCSV, loadCSV, type SchoolData, type ParsedProfile } from '@/utils/csvParser';
 import { GraduationCap, Loader2, Share2, Check } from 'lucide-react';
 import type { CalculatorInput, Grade } from '@/utils/pointsCalculator';
+import type { ReadonlyURLSearchParams } from 'next/navigation';
 
 export default function Home() {
+  return (
+    <SearchParamsProvider>
+      {({ searchParams, router, pathname }) => (
+        <HomeContentWrapper 
+          searchParams={searchParams} 
+          router={router} 
+          pathname={pathname} 
+        />
+      )}
+    </SearchParamsProvider>
+  );
+}
+
+function HomeContentWrapper({ 
+  searchParams, 
+  router, 
+  pathname 
+}: { 
+  searchParams: ReadonlyURLSearchParams;
+  router: { replace: (url: string, options?: { scroll?: boolean }) => void };
+  pathname: string;
+}) {
   const [schools, setSchools] = useState<SchoolData[]>([]);
   const [profiles, setProfiles] = useState<ParsedProfile[]>([]);
   const [userPoints, setUserPoints] = useState<number>(0);
@@ -16,23 +39,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState<boolean>(false);
   const pointsUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
 
   // Funkcje do serializacji/deserializacji CalculatorInput
-  const serializeCalculatorInput = (input: CalculatorInput) => {
-    const grades = `polish=${input.grades.polish}|math=${input.grades.math}|foreignLanguage=${input.grades.foreignLanguage}|additionalSubject=${input.grades.additionalSubject}`;
-    const exam = `polish=${input.examResults.polish}|math=${input.examResults.math}|foreignLanguage=${input.examResults.foreignLanguage}`;
-    const additional = `redRibbon=${input.additionalPoints.redRibbon ? '1' : '0'}|volunteer=${input.additionalPoints.volunteer ? '1' : '0'}|achievements=${input.additionalPoints.achievements}`;
-    return {
-      grades: encodeURIComponent(grades),
-      exam: encodeURIComponent(exam),
-      additional: encodeURIComponent(additional),
-    };
-  };
-
   const deserializeCalculatorInput = (gradesParam: string | null, examParam: string | null, additionalParam: string | null): CalculatorInput | null => {
     try {
       const defaultInput: CalculatorInput = {
@@ -316,4 +324,3 @@ export default function Home() {
     </div>
   );
 }
-
